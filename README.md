@@ -13,6 +13,6 @@ Indiscriminately counts files in a folder and displays it on the node itself (by
 ![Node Picture](./FolderFileCounter/example_workflows/FolderFileCounter-zoomed.png)
 
 ## Incrementor Plus
-Incrementor with a customizable reset button and customizable step size.
+An incrementor with a reset button and adjustable step size.
 ![Node Picture](./IncrementorPlus/example_workflows/IncrementorPlus-zoomed.png)
 
