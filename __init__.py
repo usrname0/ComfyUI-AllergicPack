@@ -1,3 +1,11 @@
+#ComfyUI-AllergicPack/
+#├── __init__.py       (Manages one central JS folder)
+#├── ExampleNode/
+#│   └── example_node.py
+#└── js/               (A single folder for ALL javascript)
+#    └── ExampleNode.js
+
+
 import os
 import importlib.util
 import sys
@@ -10,9 +18,8 @@ allergic_pack_dir = os.path.dirname(os.path.abspath(__file__))
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 
-# --- THIS IS THE CRUCIAL ADDITION for JavaScript loading ---
+# --- THIS IS THE DIRECTORY for JavaScript loading ---
 WEB_DIRECTORY = "js" 
-# ---------------------------------------------------------
 
 print(f"[*] [{__name__}] Initializing custom nodes from: {allergic_pack_dir}")
 print(f"[*] [{__name__}] Serving web content from subfolder: ./{WEB_DIRECTORY}") # Confirms web directory

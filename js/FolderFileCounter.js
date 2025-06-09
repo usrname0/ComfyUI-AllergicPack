@@ -1,9 +1,9 @@
 import { app } from "../../../scripts/app.js";
 
 app.registerExtension({
-    name: "AllergicPack.FileCounterFolder", 
+    name: "AllergicPack.FolderFileCounter", 
     async beforeRegisterNodeDef(nodeType, nodeData, appInstance) {
-        if (nodeData.name === "FileCounter_Folder_Allergic") { // Matches NODE_CLASS_MAPPINGS key
+        if (nodeData.name === "FolderFileCounter_Allergic") { // Matches NODE_CLASS_MAPPINGS key
 
             // --- REMOVED: Custom onAdded hook for marginTop and node resizing ---
             // We will now rely on LiteGraph's default widget positioning and node sizing.
