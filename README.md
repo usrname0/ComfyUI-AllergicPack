@@ -14,5 +14,5 @@ Indiscriminately counts files in a folder and displays it on the node itself (by
 
 ## Incrementor Plus
 An incrementor with a reset button and adjustable step size.
-![Node Picture](./IncrementorPlus/example_workflows/IncrementorPlus-zoomed.png)
+![Node Picture](./IncrementorPlus/example_workflows/IncrementorPlus.png)
 

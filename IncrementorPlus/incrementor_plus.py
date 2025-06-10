@@ -23,12 +23,13 @@ class IncrementorPlus:
             }
         }
 
-    RETURN_TYPES = ("INT",)
+    RETURN_TYPES = ("INT", "INT")
+    RETURN_NAMES = ("value", "step_size")
     FUNCTION = "execute"
     CATEGORY = "Allergic Pack"
 
     def execute(self, value: int, step_size: int, reset_value_to: int):
-        return (value,)
+        return (value, step_size)
 
 # Standard mapping boilerplate
 NODE_CLASS_MAPPINGS = {

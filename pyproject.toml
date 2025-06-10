@@ -1,0 +1,14 @@
+[project]
+name = "AllergicPack"
+description = "A package of utility nodes.  Currently includes: Folder File Counter, Incrementor Plus"
+version = "1.0.0"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/usrname0/ComfyUI-HoldUp"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "usrname0"
+DisplayName = "Allergic"
+Icon = ""
