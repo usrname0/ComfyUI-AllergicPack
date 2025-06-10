@@ -10,7 +10,7 @@ git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
 
 ## Folder File Counter
 Indiscriminately counts files in a folder and displays it on the node itself (by INT out).
-![Node Picture](./FolderFileCounter/example_workflows/FolderFileCounter-zoomed.png)
+![Node Picture](./FolderFileCounter/example_workflows/FolderFileCounter.png)
 
 ## Incrementor Plus
 An incrementor with a reset button and adjustable step size.
