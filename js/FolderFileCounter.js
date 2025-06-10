@@ -5,8 +5,50 @@ app.registerExtension({
     async beforeRegisterNodeDef(nodeType, nodeData, appInstance) {
         if (nodeData.name === "FolderFileCounter_Allergic") { // Matches NODE_CLASS_MAPPINGS key
 
-            // --- REMOVED: Custom onAdded hook for marginTop and node resizing ---
-            // We will now rely on LiteGraph's default widget positioning and node sizing.
+            // --- Hook to set initial minimal node size ---
+            const onNodeCreated = nodeType.prototype.onNodeCreated;
+            nodeType.prototype.onNodeCreated = function() {
+                onNodeCreated?.apply(this, arguments);
+                
+                // Set initial minimal node size (but allow user to resize)
+                this.size = [Math.max(this.size[0], 200), Math.max(this.size[1], 80)]; // [width, height]
+                
+                // Find the folder_path widget and set initial minimal size
+                const folderPathWidget = this.widgets?.find(w => w.name === "folder_path");
+                if (folderPathWidget && folderPathWidget.inputEl) {
+                    // Set initial minimal size but preserve default ComfyUI widget behavior
+                    folderPathWidget.inputEl.style.minHeight = "25px";
+                    folderPathWidget.inputEl.rows = 1; // Start with 1 row
+                    // Don't override computeSize to maintain default widget-to-node coupling
+                }
+                
+                // Force node to recalculate its size
+                this.setDirtyCanvas(true, true);
+            };
+
+            // --- Hook for when node is added to graph ---
+            const onAdded = nodeType.prototype.onAdded;
+            nodeType.prototype.onAdded = function(graph) {
+                onAdded?.apply(this, arguments);
+                
+                // Set initial minimal size after node is added
+                setTimeout(() => {
+                    // Set initial compact size but don't limit maximum
+                    if (this.size[1] > 100) {
+                        this.size[1] = 100; // Start compact, but user can resize larger
+                    }
+                    
+                    // Set initial minimal widget size (preserving default behavior)
+                    const folderPathWidget = this.widgets?.find(w => w.name === "folder_path");
+                    if (folderPathWidget && folderPathWidget.inputEl) {
+                        folderPathWidget.inputEl.style.minHeight = "25px";
+                        folderPathWidget.inputEl.rows = 1;
+                        // Remove independent resize - let it follow node size as default
+                    }
+                    
+                    this.setDirtyCanvas(true, true);
+                }, 50);
+            };
 
             // --- Hook to update output slot name when node is executed ---
             const onExecutedOriginal = nodeType.prototype.onExecuted;
@@ -46,8 +88,6 @@ app.registerExtension({
             };
 
             // --- Ensure onDrawForeground does no custom drawing of the number ---
-            // (It's good practice to ensure it calls the original if one existed, 
-            // even if we're not adding custom drawing here.)
             const onDrawForegroundOriginal = nodeType.prototype.onDrawForeground;
             nodeType.prototype.onDrawForeground = function (ctx) {
                 onDrawForegroundOriginal?.apply?.(this, arguments);
