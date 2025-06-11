@@ -91,10 +91,10 @@ const RememberMeExtension = {
         
         // Apply visual feedback
         if (isFirstRun) {
-            // First run - neutral styling
-            displayWidget.inputEl.style.borderColor = "#555";
-            displayWidget.inputEl.style.backgroundColor = "var(--comfy-input-bg, #333)";
-            displayWidget.inputEl.style.color = NORMAL_COLOR;
+            // First run - subtle green tint
+            displayWidget.inputEl.style.borderColor = "#666";
+            displayWidget.inputEl.style.backgroundColor = "rgba(102, 255, 153, 0.05)";
+            displayWidget.inputEl.style.color = STABLE_COLOR;
         } else if (hasChanged) {
             // Environment changed - highlight in orange
             displayWidget.inputEl.style.borderColor = CHANGED_COLOR;
