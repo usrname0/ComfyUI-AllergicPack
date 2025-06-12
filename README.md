@@ -1,5 +1,5 @@
 ﻿## ComfyUI-AllergicPack
-This package is not ready for primetime but I'm making it public anyway.  If I'm using the node then I'm putting it here.  Might make it more official later.  Use at your own risk.
+This package is somewhat ready for primetime.  If I'm using the node then I'm putting it here.  Good luck.
 
 ## Installation
 Clone to "custom_nodes"
