@@ -1,15 +1,14 @@
 ﻿## ComfyUI-AllergicPack
 This package is somewhat ready for primetime.  If I'm using the node then I'm putting it here.  Good luck.
 
-## Installation via ComfyUI Manager
-Got to "Manager," then "Custom Nodes Manager," search "Allergic Pack" and click "Install"
-
-## Installation Via Github
+## Installation 
 Clone to "custom_nodes"
 
 ```
 git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
 ```
+
+Also you can use ComfyUI Manager! Go to "Manager," then "Custom Nodes Manager," search "Allergic Pack" and click "Install"
 
 ## Incrementor Plus
 An incrementor with a reset button and adjustable step size. 
