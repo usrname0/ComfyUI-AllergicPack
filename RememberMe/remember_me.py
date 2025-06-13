@@ -1,5 +1,5 @@
 # In ComfyUI/custom_nodes/RememberMe/RememberMe.py
-# Simplified version - always record, auto-detect changes
+# Simple version - just handles images
 import torch
 import importlib.metadata
 import sys
@@ -13,13 +13,15 @@ class RememberMeNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
-            "required": {},
+            "required": {
+                "images": ("IMAGE",),
+            },
         }
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("environment_info",)
+    RETURN_TYPES = ("IMAGE", "STRING",)
+    RETURN_NAMES = ("images", "environment_info",)
     FUNCTION = "capture_environment"
     CATEGORY = "utils"
-    OUTPUT_NODE = True
+    OUTPUT_NODE = False
 
     def _get_package_version(self, import_names, pypi_keywords, display_name):
         """Try to get package version by import or PyPI name"""
@@ -118,8 +120,8 @@ class RememberMeNode:
         
         return "\n".join(lines)
 
-    def capture_environment(self):
-        """Capture current environment info and detect changes"""
+    def capture_environment(self, images):
+        """Capture current environment info and pass through images"""
         current_snapshot = self._generate_environment_snapshot()
         
         # For change detection, we'll store a simplified version without timestamp
@@ -133,11 +135,12 @@ class RememberMeNode:
             "timestamp": datetime.now().isoformat()
         }
         
+        # Pass through the images unchanged
         return {
             "ui": {
                 "environment_payload": [payload]
             },
-            "result": (current_snapshot,)
+            "result": (images, current_snapshot,)
         }
 
 NODE_CLASS_MAPPINGS = {RememberMeNode.NODE_NAME: RememberMeNode}
