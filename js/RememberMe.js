@@ -27,7 +27,7 @@ const RememberMeExtension = {
         
         const widget = ComfyWidgets.STRING(nodeInstance, widgetName, ["STRING", {
             multiline: true,
-            default: "Environment info will appear here after execution...",
+            default: "Environment info will appear here after execution... \n\nFirst run popluates node data but doesn't save.\nSubsequent runs are saved to metadata.",
             serialize: false
         }], app).widget;
         
@@ -91,10 +91,10 @@ const RememberMeExtension = {
         
         // Apply visual feedback
         if (isFirstRun) {
-            // First run - subtle green tint
-            displayWidget.inputEl.style.borderColor = "#666";
-            displayWidget.inputEl.style.backgroundColor = "rgba(102, 255, 153, 0.05)";
-            displayWidget.inputEl.style.color = STABLE_COLOR;
+            // First run 
+            displayWidget.inputEl.style.borderColor = NORMAL_COLOR;
+            displayWidget.inputEl.style.backgroundColor = "#202020";
+            displayWidget.inputEl.style.color = NORMAL_COLOR;
         } else if (hasChanged) {
             // Environment changed - highlight in orange
             displayWidget.inputEl.style.borderColor = CHANGED_COLOR;
