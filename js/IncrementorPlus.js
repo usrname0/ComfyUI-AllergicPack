@@ -13,6 +13,9 @@ app.registerExtension({
 				// Store reference to this node for use in callbacks
 				const node = this;
 
+				// Flag to track if this node is being loaded from a workflow
+				node._isFromWorkflow = false;
+
 				// Create the button widget
 				this.addWidget(
 					"button", "Reset Value", "reset_button",
@@ -25,8 +28,7 @@ app.registerExtension({
 					}
 				);
 
-				// Set the default "control after generate" behavior to "increment"
-				// and configure dynamic step size for increment/decrement operations
+				// Set up the control after generate behavior
 				setTimeout(() => {
 					const valueWidget = node.widgets.find((w) => w.name === "value");
 					
@@ -34,8 +36,20 @@ app.registerExtension({
 						// Find the control after generate dropdown (it's a ComboWidget in linkedWidgets)
 						const controlWidget = valueWidget.linkedWidgets.find(w => w.type === "combo");
 						if (controlWidget) {
-							controlWidget.value = "increment";
-							
+							// For new nodes (not from workflow), set increment as default
+							if (!node._isFromWorkflow) {
+								// Use multiple attempts to ensure it sticks for new nodes
+								const setIncrement = () => {
+									if (controlWidget.value === "randomize" || controlWidget.value === "fixed" || !controlWidget.value) {
+										controlWidget.value = "increment";
+									}
+								};
+								
+								setIncrement();
+								setTimeout(setIncrement, 50);
+								setTimeout(setIncrement, 200);
+							}
+
 							// Override the afterQueued callback to use custom step size
 							const originalAfterQueued = controlWidget.afterQueued;
 							controlWidget.afterQueued = function() {
@@ -58,6 +72,18 @@ app.registerExtension({
 						}
 					}
 				}, 100);
+			};
+
+			// Override the configure method to detect workflow loads
+			const originalConfigure = nodeType.prototype.configure;
+			nodeType.prototype.configure = function(info) {
+				// Mark this node as being loaded from a workflow
+				this._isFromWorkflow = true;
+
+				// Call the original configure method
+				if (originalConfigure) {
+					originalConfigure.call(this, info);
+				}
 			};
 		}
 	},
