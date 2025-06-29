@@ -18,7 +18,7 @@ class RememberMeNode:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("environment_info",)
     FUNCTION = "capture_environment"
-    CATEGORY = "utils"
+    CATEGORY = "Allergic Pack"
     OUTPUT_NODE = True
 
     def _get_package_version(self, import_names, pypi_keywords, display_name):

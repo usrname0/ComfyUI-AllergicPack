@@ -1,4 +1,4 @@
-import { app } from "../../../scripts/app.js";
+import { app } from "../../scripts/app.js";
 
 app.registerExtension({
     name: "AllergicPack.FolderFileCounter", 
@@ -8,22 +8,38 @@ app.registerExtension({
             // --- Hook to set initial minimal node size ---
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function() {
-                onNodeCreated?.apply(this, arguments);
+                const result = onNodeCreated?.apply(this, arguments);
                 
                 // Set initial minimal node size (but allow user to resize)
                 this.size = [Math.max(this.size[0], 200), Math.max(this.size[1], 80)]; // [width, height]
                 
                 // Find the folder_path widget and set initial minimal size
                 const folderPathWidget = this.widgets?.find(w => w.name === "folder_path");
-                if (folderPathWidget && folderPathWidget.inputEl) {
+                if (folderPathWidget) {
                     // Set initial minimal size but preserve default ComfyUI widget behavior
-                    folderPathWidget.inputEl.style.minHeight = "25px";
-                    folderPathWidget.inputEl.rows = 1; // Start with 1 row
-                    // Don't override computeSize to maintain default widget-to-node coupling
+                    if (folderPathWidget.inputEl) {
+                        folderPathWidget.inputEl.style.minHeight = "25px";
+                        folderPathWidget.inputEl.rows = 1; // Start with 1 row
+                        // Don't override computeSize to maintain default widget-to-node coupling
+                    }
                 }
+                
+                // --- ADD SELECT ALL BUTTON ---
+                this.addWidget(
+                    "button", "Select All Text", "select_all_button",
+                    () => {
+                        const folderPathWidget = this.widgets.find((w) => w.name === "folder_path");
+                        if (folderPathWidget && folderPathWidget.inputEl) {
+                            folderPathWidget.inputEl.focus();
+                            folderPathWidget.inputEl.select();
+                        }
+                    }
+                );
                 
                 // Force node to recalculate its size
                 this.setDirtyCanvas(true, true);
+                
+                return result;
             };
 
             // --- Hook for when node is added to graph ---
