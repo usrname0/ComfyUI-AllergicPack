@@ -23,6 +23,7 @@ This node will save some environment info into itself and therefore into your ou
  
 It will always update itself with the latest run so if you have a mismatch you'll have to reload your source file to see what changed.  (I tried a more complicated comparison logic but it wasn't worth it)
 
-Note: First run only populates metada to the node itself, subsequent runs get the metadata in the output files.  I couldn't find any way around this.
+Note: When you first load the node into a new workflow you'll have to hit "Populate Environment Info" if you want your first run to actually conatain metadata.  Otherwise first run populates data into the node and subsequent runs store data and compare.  This is just a quirk of how it works until I think of something more clever.
 ![Node Picture](./RememberMe/example_workflows/RememberMe-Green.png)
 ![Node Picture](./RememberMe/example_workflows/RememberMe-Red.png)
+
