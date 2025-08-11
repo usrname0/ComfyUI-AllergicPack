@@ -1,10 +1,15 @@
-# In ComfyUI/custom_nodes/RememberMe/RememberMe.py
-# Simplified version - always record, auto-detect changes
+"""
+RememberMe Node for ComfyUI
+Captures and displays Python environment information including packages, CUDA, and CLI args.
+Features change detection and a button for immediate population without workflow execution.
+"""
+
 import torch
 import importlib.metadata
 import sys
 from datetime import datetime
 import json
+import server
 
 class RememberMeNode:
     NODE_NAME = "RememberMeNode"
@@ -14,6 +19,7 @@ class RememberMeNode:
     def INPUT_TYPES(cls):
         return {
             "required": {},
+            "hidden": {"populate_env": "POPULATE_ENV"}  # Hidden input for button callback
         }
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("environment_info",)
@@ -118,7 +124,7 @@ class RememberMeNode:
         
         return "\n".join(lines)
 
-    def capture_environment(self):
+    def capture_environment(self, populate_env=None):
         """Capture current environment info and detect changes"""
         current_snapshot = self._generate_environment_snapshot()
         
@@ -126,11 +132,12 @@ class RememberMeNode:
         lines = current_snapshot.split('\n')
         snapshot_without_timestamp = '\n'.join([line for line in lines if not line.startswith('Captured:')])
         
-        # Create payload for JavaScript to handle change detection
+        # Create payload for JavaScript change detection and display
         payload = {
             "current_snapshot": current_snapshot,
-            "comparison_key": snapshot_without_timestamp,  # Used for change detection
-            "timestamp": datetime.now().isoformat()
+            "comparison_key": snapshot_without_timestamp,
+            "timestamp": datetime.now().isoformat(),
+            "populate_requested": populate_env is not None
         }
         
         return {
@@ -139,6 +146,34 @@ class RememberMeNode:
             },
             "result": (current_snapshot,)
         }
+
+# Custom API endpoint for isolated environment collection
+@server.PromptServer.instance.routes.post("/remember_me/populate")
+async def populate_environment_info(request):
+    """
+    Direct API endpoint to collect environment info without executing workflows.
+    Called by the "Populate Environment Info" button in the JavaScript frontend.
+    """
+    try:
+        node_instance = RememberMeNode()
+        result = node_instance.capture_environment(populate_env=True)
+        
+        # Validate result structure
+        if not isinstance(result, dict) or "ui" not in result:
+            raise ValueError("Invalid result structure from capture_environment")
+            
+        return server.web.json_response({
+            "success": True,
+            "ui": result["ui"],
+            "result": result["result"]
+        })
+    except Exception as e:
+        # Log error for debugging
+        print(f"[RememberMe] API endpoint error: {str(e)}")
+        return server.web.json_response({
+            "success": False,
+            "error": str(e)
+        }, status=500)
 
 NODE_CLASS_MAPPINGS = {RememberMeNode.NODE_NAME: RememberMeNode}
 NODE_DISPLAY_NAME_MAPPINGS = {RememberMeNode.NODE_NAME: RememberMeNode.DISPLAY_NAME}

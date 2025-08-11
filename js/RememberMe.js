@@ -1,10 +1,13 @@
-// In ComfyUI/custom_nodes/RememberMe/js/RememberMe.js
-// Fixed version - properly handles environment comparison across loads
+/**
+ * RememberMe Extension for ComfyUI
+ * Displays Python environment information with change detection.
+ * Features a button for immediate population without workflow execution.
+ */
 import { app } from "../../../scripts/app.js";
 import { ComfyWidgets } from "../../../scripts/widgets.js";
 
-const extensionName = "Comfy.RememberMeNode.Simplified";
-const nodeTypeName = "RememberMeNode";
+const EXTENSION_NAME = "Comfy.RememberMeNode.Enhanced";
+const NODE_TYPE_NAME = "RememberMeNode";
 
 // Colors for different states
 const NORMAL_COLOR = "#dddddd";
@@ -12,7 +15,7 @@ const CHANGED_COLOR = "#ff4444";  // Red for when environment changed
 const STABLE_COLOR = "#66ff99";   // Green for stable environment
 
 const RememberMeExtension = {
-    name: extensionName,
+    name: EXTENSION_NAME,
     
     // Store last known environment for comparison
     lastEnvironment: null,
@@ -20,14 +23,14 @@ const RememberMeExtension = {
     createDisplayWidget: function(nodeInstance) {
         const widgetName = "environment_display";
         
-        // Check if widget already exists
+        // Check if widget already exists (prevents duplicates on reload)
         if (nodeInstance.widgets && nodeInstance.widgets.find(w => w.name === widgetName)) {
             return nodeInstance.widgets.find(w => w.name === widgetName);
         }
         
         const widget = ComfyWidgets.STRING(nodeInstance, widgetName, ["STRING", {
             multiline: true,
-            default: "Environment info will appear here after execution... \n\nFirst run popluates node data but doesn't save.\nSubsequent runs are saved to metadata.",
+            default: "Environment info will appear here after execution...\n\nClick 'Populate Environment Info' button to collect data immediately.\nFirst run populates node data but doesn't save.\nSubsequent runs are saved to metadata.",
             serialize: false
         }], app).widget;
         
@@ -50,12 +53,12 @@ const RememberMeExtension = {
     },
 
     extractComparisonKey: function(value) {
-        if (!value || value.includes("Environment info will appear here")) {
+        if (!value || typeof value !== 'string' || value.includes("Environment info will appear here")) {
             return null;
         }
         
         // Remove status prefix if present
-        const cleanValue = value.replace(/^\[(FIRST RUN|CHANGED|STABLE)\] /, '');
+        const cleanValue = value.replace(/^\[(FIRST RUN|CHANGED|STABLE|POPULATED)\] /, '');
         // Remove timestamp line for comparison
         const lines = cleanValue.split('\n');
         return lines.filter(line => !line.startsWith('Captured:')).join('\n');
@@ -73,7 +76,7 @@ const RememberMeExtension = {
             return;
         }
         
-        const { current_snapshot, comparison_key } = payload;
+        const { current_snapshot, comparison_key, populate_requested } = payload;
         
         // Check if there's existing data in the widget (from loaded workflow/metadata)
         const existingValue = displayWidget.value;
@@ -83,20 +86,20 @@ const RememberMeExtension = {
         const storedComparisonKey = nodeInstance._storedComparisonKey || previousComparisonKey;
         
         // Determine state
-        const isFirstRun = !storedComparisonKey && !this.lastEnvironment;
-        const hasChanged = storedComparisonKey && storedComparisonKey !== comparison_key;
+        const isFirstRun = (!storedComparisonKey && !this.lastEnvironment) || populate_requested;
+        const hasChanged = !populate_requested && storedComparisonKey && storedComparisonKey !== comparison_key;
         
         // Store the new comparison key on the node instance
         nodeInstance._storedComparisonKey = comparison_key;
         
-        // Apply visual feedback
+        // Apply visual feedback based on environment state
         if (isFirstRun) {
-            // First run 
+            // First run or populate button - neutral styling
             displayWidget.inputEl.style.borderColor = NORMAL_COLOR;
             displayWidget.inputEl.style.backgroundColor = "#202020";
             displayWidget.inputEl.style.color = NORMAL_COLOR;
         } else if (hasChanged) {
-            // Environment changed - highlight in orange
+            // Environment changed - red warning styling
             displayWidget.inputEl.style.borderColor = CHANGED_COLOR;
             displayWidget.inputEl.style.backgroundColor = "rgba(255, 68, 68, 0.1)";
             displayWidget.inputEl.style.color = CHANGED_COLOR;
@@ -108,10 +111,10 @@ const RememberMeExtension = {
             }, 2000);
             
             console.log("[RememberMe] Environment change detected!");
-            console.log("[RememberMe] Previous:", storedComparisonKey.substring(0, 100) + "...");
-            console.log("[RememberMe] Current:", comparison_key.substring(0, 100) + "...");
+            console.log("[RememberMe] Previous:", storedComparisonKey?.substring(0, 100) + "...");
+            console.log("[RememberMe] Current:", comparison_key?.substring(0, 100) + "...");
         } else {
-            // Environment stable - subtle green tint
+            // Environment stable - green success styling
             displayWidget.inputEl.style.borderColor = "#666";
             displayWidget.inputEl.style.backgroundColor = "rgba(102, 255, 153, 0.05)";
             displayWidget.inputEl.style.color = STABLE_COLOR;
@@ -121,7 +124,8 @@ const RememberMeExtension = {
         this.lastEnvironment = comparison_key;
         
         // Add status indicator and update display
-        const statusPrefix = isFirstRun ? "[FIRST RUN] " : 
+        const statusPrefix = populate_requested ? "[POPULATED] " :
+                           isFirstRun ? "[FIRST RUN] " : 
                            hasChanged ? "[CHANGED] " : 
                            "[STABLE] ";
         
@@ -129,7 +133,7 @@ const RememberMeExtension = {
     },
 
     async beforeRegisterNodeDef(nodeType, nodeData, appInstance) {
-        if (nodeData.name === nodeTypeName) {
+        if (nodeData.name === NODE_TYPE_NAME) {
             const originalOnExecuted = nodeType.prototype.onExecuted;
             nodeType.prototype.onExecuted = function(message) {
                 originalOnExecuted?.apply(this, arguments);
@@ -167,9 +171,57 @@ const RememberMeExtension = {
                 originalOnAdded?.apply(this, arguments);
                 RememberMeExtension.createDisplayWidget(this);
                 
-                // Set a larger default size to accommodate the multiline widget
+                // Add the populate environment button
+                this.addWidget(
+                    "button", "Populate Environment Info", "populate_env_button",
+                    async () => {
+                        // Show immediate feedback
+                        const displayWidget = this.environmentWidget;
+                        if (displayWidget && displayWidget.inputEl) {
+                            displayWidget.value = "Collecting environment info...";
+                            displayWidget.inputEl.style.borderColor = "#ffaa00";
+                            displayWidget.inputEl.style.backgroundColor = "rgba(255, 170, 0, 0.1)";
+                        }
+                        
+                        try {
+                            // Call custom API endpoint for isolated environment collection
+                            const response = await fetch('/remember_me/populate', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                            
+                            if (response.ok) {
+                                const result = await response.json();
+                                if (result.success && result.ui?.environment_payload) {
+                                    RememberMeExtension.updateDisplay(this, result.ui.environment_payload[0]);
+                                } else {
+                                    throw new Error(result.error || 'Unknown API response format');
+                                }
+                            } else {
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                        } catch (error) {
+                            console.warn('[RememberMe] Direct API failed, falling back to queue method:', error);
+                            
+                            // Show fallback warning
+                            if (displayWidget?.inputEl) {
+                                displayWidget.value = "Collecting environment info... (running workflow as fallback)";
+                            }
+                            
+                            // Fallback to workflow execution (not ideal but functional)
+                            app.queuePrompt(0, 1, {
+                                [this.id]: {
+                                    inputs: { populate_env: true },
+                                    class_type: NODE_TYPE_NAME
+                                }
+                            });
+                        }
+                    }
+                );
+                
+                // Set a larger default size to accommodate the multiline widget and button
                 const currentSize = this.computeSize();
-                this.setSize([Math.max(currentSize[0], 400), Math.max(currentSize[1], 300)]);
+                this.setSize([Math.max(currentSize[0], 400), Math.max(currentSize[1], 320)]);
             };
 
             // Override serialize to ensure comparison key is saved
@@ -202,4 +254,4 @@ const RememberMeExtension = {
 };
 
 app.registerExtension(RememberMeExtension);
-console.log(`[${extensionName}] Extension registered - fixed comparison with proper state persistence.`);
+console.log(`[${EXTENSION_NAME}] Extension registered with environment change detection and populate button.`);
