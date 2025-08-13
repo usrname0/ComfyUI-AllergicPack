@@ -1,7 +1,7 @@
 [project]
 name = "AllergicPack"
 description = "A package of utility nodes.  Folder File Counter, Incrementor Plus, Remember Me (Environment Info)"
-version = "1.2.1"
+version = "1.2.2"
 license = {file = "LICENSE"}
 
 [project.urls]

@@ -14,6 +14,10 @@ const NORMAL_COLOR = "#dddddd";
 const CHANGED_COLOR = "#ff4444";  // Red for when environment changed
 const STABLE_COLOR = "#66ff99";   // Green for stable environment
 
+// Size constraints
+const MIN_NODE_WIDTH = 380;   // Minimum width for button and text display
+const MIN_NODE_HEIGHT = 320;  // Minimum height for multiline widget and button
+
 const RememberMeExtension = {
     name: EXTENSION_NAME,
     
@@ -221,7 +225,29 @@ const RememberMeExtension = {
                 
                 // Set a larger default size to accommodate the multiline widget and button
                 const currentSize = this.computeSize();
-                this.setSize([Math.max(currentSize[0], 400), Math.max(currentSize[1], 320)]);
+                this.setSize([
+                    Math.max(currentSize[0], Math.max(400, MIN_NODE_WIDTH)), 
+                    Math.max(currentSize[1], Math.max(320, MIN_NODE_HEIGHT))
+                ]);
+            };
+
+            // Override onResize to enforce minimum size constraints
+            const originalOnResize = nodeType.prototype.onResize;
+            nodeType.prototype.onResize = function(size) {
+                // Enforce minimum size to prevent UI breaking
+                const constrainedSize = [
+                    Math.max(size[0], MIN_NODE_WIDTH),
+                    Math.max(size[1], MIN_NODE_HEIGHT)
+                ];
+                
+                // Call original resize with constrained size
+                if (originalOnResize) {
+                    originalOnResize.call(this, constrainedSize);
+                } else {
+                    this.size = constrainedSize;
+                }
+                
+                return constrainedSize;
             };
 
             // Override serialize to ensure comparison key is saved
