@@ -106,14 +106,14 @@ app.registerExtension({
 				}
 
 				const info = message.batch_info[0];
-				const { batch_count, folder_path, total_batches, batch_index } = info;
+				const { images_loaded, folder_path, total_batches, batch_index } = info;
 
-				// Output slot indices: 0=images, 1=masks, 2=batch_count, 3=folder_path, 4=total_batches
+				// Output slot indices: 0=images, 1=masks, 2=images_loaded, 3=folder_path, 4=total_batches
 				if (this.outputs && this.outputs.length >= 5) {
-					// batch_count slot (index 2)
+					// images_loaded slot (index 2)
 					const batchLabel = total_batches > 0 && batch_index < total_batches
-						? "batch_count: " + batch_count + " (batch " + (batch_index + 1) + "/" + total_batches + ")"
-						: "batch_count: " + batch_count + " (DONE)";
+						? "images_loaded: " + images_loaded + " (batch " + (batch_index + 1) + "/" + total_batches + ")"
+						: "images_loaded: " + images_loaded + " (DONE)";
 					this._updateSlotName(2, batchLabel);
 
 					// folder_path slot (index 3) - show just the folder name

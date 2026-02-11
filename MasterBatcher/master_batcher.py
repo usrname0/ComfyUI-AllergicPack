@@ -82,7 +82,7 @@ class MasterBatcher:
         }
 
     RETURN_TYPES = ("IMAGE", "MASK", "INT", "STRING", "INT")
-    RETURN_NAMES = ("images", "masks", "batch_count", "folder_path", "total_batches")
+    RETURN_NAMES = ("images", "masks", "images_loaded", "folder_path", "total_batches")
     FUNCTION = "load_batch"
     CATEGORY = "Allergic Pack"
 
@@ -227,7 +227,7 @@ class MasterBatcher:
                    sort_method, load_always):
         """Main execution: load a batch of images from the mapped folders.
 
-        Returns IMAGE tensor (N,H,W,3), MASK tensor (N,H,W), batch_count,
+        Returns IMAGE tensor (N,H,W,3), MASK tensor (N,H,W), images_loaded,
         folder_path string, and total_batches count.
         """
         batch_map = self.build_batch_map(folder_paths, batch_size, sort_method)
@@ -241,7 +241,7 @@ class MasterBatcher:
             return {
                 "ui": {
                     "batch_info": [{
-                        "batch_count": 0,
+                        "images_loaded": 0,
                         "folder_path": status,
                         "total_batches": total_batches,
                         "batch_index": batch_index,
@@ -304,7 +304,7 @@ class MasterBatcher:
             return {
                 "ui": {
                     "batch_info": [{
-                        "batch_count": 0,
+                        "images_loaded": 0,
                         "folder_path": current_folder,
                         "total_batches": total_batches,
                         "batch_index": batch_index,
@@ -316,18 +316,18 @@ class MasterBatcher:
         # Stack into batch tensors
         image_batch = torch.from_numpy(np.stack(images))  # (N, H, W, 3)
         mask_batch = torch.from_numpy(np.stack(masks))    # (N, H, W)
-        batch_count = len(images)
+        images_loaded = len(images)
 
         return {
             "ui": {
                 "batch_info": [{
-                    "batch_count": batch_count,
+                    "images_loaded": images_loaded,
                     "folder_path": current_folder,
                     "total_batches": total_batches,
                     "batch_index": batch_index,
                 }]
             },
-            "result": (image_batch, mask_batch, batch_count, current_folder, total_batches),
+            "result": (image_batch, mask_batch, images_loaded, current_folder, total_batches),
         }
 
 
