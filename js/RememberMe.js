@@ -34,7 +34,7 @@ const RememberMeExtension = {
         
         const widget = ComfyWidgets.STRING(nodeInstance, widgetName, ["STRING", {
             multiline: true,
-            default: "Environment info will appear here after execution...\n\nClick 'Populate Environment Info' button to collect data immediately.\nFirst run populates node data but doesn't save.\nSubsequent runs are saved to metadata.",
+            default: "Click 'Populate Environment Info' button to collect\ndata for initial run.\n\nOtherwise first run just populates node data.\nSubsequent runs populate, compare and are saved\nto metadata.",
             serialize: false
         }], app).widget;
         

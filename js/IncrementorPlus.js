@@ -50,18 +50,29 @@ app.registerExtension({
 								setTimeout(setIncrement, 200);
 							}
 
+							// Store widget names to avoid closure memory leak
+							const valueWidgetName = valueWidget.name;
+							const nodeId = node.id;
+							
 							// Override the afterQueued callback to use custom step size
 							const originalAfterQueued = controlWidget.afterQueued;
 							controlWidget.afterQueued = function() {
-								// Use the stored node reference to find the step_size widget
-								const stepSizeWidget = node.widgets.find((w) => w.name === "step_size");
-								const stepSize = stepSizeWidget ? stepSizeWidget.value : 1;
+								// Find the node by ID to avoid storing direct reference
+								const targetNode = app.graph.getNodeById(nodeId);
+								if (!targetNode) return;
+								
+								const currentValueWidget = targetNode.widgets.find(w => w.name === valueWidgetName);
+								const stepSizeWidget = targetNode.widgets.find(w => w.name === "step_size");
+								
+								if (!currentValueWidget || !stepSizeWidget) return;
+								
+								const stepSize = stepSizeWidget.value;
 								
 								// Apply our custom increment/decrement logic
-								if (controlWidget.value === "increment") {
-									valueWidget.value += stepSize;
-								} else if (controlWidget.value === "decrement") {
-									valueWidget.value -= stepSize;
+								if (this.value === "increment") {
+									currentValueWidget.value += stepSize;
+								} else if (this.value === "decrement") {
+									currentValueWidget.value -= stepSize;
 								} else {
 									// For randomize and fixed, call the original behavior
 									if (originalAfterQueued) {

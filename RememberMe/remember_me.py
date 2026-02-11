@@ -13,7 +13,7 @@ import server
 
 class RememberMeNode:
     NODE_NAME = "RememberMeNode"
-    DISPLAY_NAME = "Remember Me (Environment Info)"
+    DISPLAY_NAME = "Remember Me (Allergic)"
 
     @classmethod
     def INPUT_TYPES(cls):

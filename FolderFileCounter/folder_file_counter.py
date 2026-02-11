@@ -109,10 +109,9 @@ class FolderFileCounter:
             return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
 
         try:
-            entries = os.listdir(processed_path)
-            files = [entry for entry in entries if os.path.isfile(os.path.join(processed_path, entry))]
-            current_file_count = len(files)
-            file_count_to_display = current_file_count
+            # Use generator expression to avoid storing full list in memory
+            file_count_to_display = sum(1 for entry in os.listdir(processed_path) 
+                                       if os.path.isfile(os.path.join(processed_path, entry)))
             
             # print(f"[FolderFileCounter] Path: '{processed_path}', Files: {file_count_to_display}") # Optional server log
             return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
