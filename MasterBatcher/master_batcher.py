@@ -7,7 +7,6 @@ them batch by batch, outputting the correct folder path with every batch.
 """
 
 import os
-import re
 import math
 import random
 
@@ -15,6 +14,8 @@ import numpy as np
 import torch
 from PIL import Image, ImageOps
 import server
+
+from allergic_utils import sanitize_path
 
 
 IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif', '.webp'}
@@ -38,6 +39,8 @@ class MasterBatcher:
     Each folder starts its batches fresh at index 0.
     """
 
+    NODE_NAME = "MasterBatcher_Allergic"
+    DISPLAY_NAME = "Master Batcher (Allergic)"
     OUTPUT_NODE = True
 
     @classmethod
@@ -92,57 +95,6 @@ class MasterBatcher:
         if kwargs.get("load_always", True):
             return float("NaN")
         return ""
-
-    def sanitize_path(self, path_str):
-        """Clean filesystem-unfriendly characters from a path string."""
-        if not isinstance(path_str, str):
-            return str(path_str) if path_str is not None else ""
-
-        path_str = path_str.strip()
-        if (path_str.startswith('"') and path_str.endswith('"')) or \
-           (path_str.startswith("'") and path_str.endswith("'")):
-            path_str = path_str[1:-1]
-
-        drive_pattern = r'^([A-Za-z]):\\?'
-        drive_match = re.match(drive_pattern, path_str)
-        drive_prefix = ""
-        remaining_path = path_str
-
-        if drive_match:
-            drive_prefix = drive_match.group(1) + ":\\"
-            remaining_path = path_str[len(drive_match.group(0)):]
-
-        forbidden_chars = '<>"|?*`!@#$%^&+={}[];,~'
-        sanitized = remaining_path
-        for char in forbidden_chars:
-            sanitized = sanitized.replace(char, '')
-
-        sanitized = ''.join(
-            char for char in sanitized
-            if (ord(char) > 31 and ord(char) < 127) or ord(char) > 159
-        )
-
-        while '  ' in sanitized:
-            sanitized = sanitized.replace('  ', ' ')
-        sanitized = sanitized.strip()
-
-        sanitized = sanitized.replace('/', '\\')
-        while '\\\\' in sanitized:
-            sanitized = sanitized.replace('\\\\', '\\')
-
-        path_parts = sanitized.split('\\')
-        cleaned_parts = []
-        for part in path_parts:
-            cleaned_part = part.rstrip('. ')
-            if cleaned_part:
-                cleaned_parts.append(cleaned_part)
-
-        sanitized = '\\'.join(cleaned_parts)
-        final_path = drive_prefix + sanitized
-
-        if not final_path.strip():
-            return ""
-        return final_path
 
     def get_image_files(self, folder_path, sort_method):
         """List and sort image files in a folder.
@@ -200,7 +152,7 @@ class MasterBatcher:
         lines = folder_paths_raw.strip().split('\n')
 
         for line in lines:
-            folder_path = self.sanitize_path(line)
+            folder_path = sanitize_path(line)
             if not folder_path:
                 continue
             if not os.path.isdir(folder_path):
@@ -376,10 +328,5 @@ async def calculate_batches(request):
         }, status=500)
 
 
-NODE_CLASS_MAPPINGS = {
-    "MasterBatcher_Allergic": MasterBatcher,
-}
-
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "MasterBatcher_Allergic": "Master Batcher (Allergic)",
-}
+NODE_CLASS_MAPPINGS = {MasterBatcher.NODE_NAME: MasterBatcher}
+NODE_DISPLAY_NAME_MAPPINGS = {MasterBatcher.NODE_NAME: MasterBatcher.DISPLAY_NAME}

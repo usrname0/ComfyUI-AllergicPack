@@ -1,8 +1,11 @@
 [project]
 name = "AllergicPack"
-description = "A package of utility nodes.  Folder File Counter, Incrementor Plus, Remember Me (Environment Info)"
-version = "1.2.2"
+description = "A package of utility nodes.  Folder File Counter, Incrementor Plus, Remember Me (Environment Info), Audio Analyzer (BPM & Key Detection)"
+version = "1.3.0"
 license = {file = "LICENSE"}
+dependencies = [
+    "librosa",
+]
 
 [project.urls]
 Repository = "https://github.com/usrname0/ComfyUI-AllergicPack"

@@ -1,8 +1,14 @@
 {
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(python -c:*)"
-    ]
+      "Bash(python -c:*)",
+      "WebSearch",
+      "Bash(ls:*)",
+      "Bash(/c/Users/retcon/Documents/ComfyUI_windows_portable_20260212/python_embeded/python.exe -m pip install:*)",
+      "Bash(/dev/null -exec grep -l \"class.*TextEncodeAceStepAudio\\\\|def.*TextEncodeAceStepAudio\" {} ;)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:comfyai.run)"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }

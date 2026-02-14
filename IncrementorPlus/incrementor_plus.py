@@ -1,7 +1,8 @@
-# In AllergicPack/IncrementorPlus/incrementor_plus.py
-
 class IncrementorPlus:
+    """Integer counter with configurable step size and reset."""
+
     NODE_NAME = "IncrementorPlus"
+    DISPLAY_NAME = "Incrementor Plus (Allergic)"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -31,10 +32,5 @@ class IncrementorPlus:
     def execute(self, value: int, step_size: int, reset_value_to: int):
         return (value, step_size)
 
-# Standard mapping boilerplate
-NODE_CLASS_MAPPINGS = {
-    "IncrementorPlus": IncrementorPlus
-}
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "IncrementorPlus": "Incrementor Plus (Allergic)"
-}
+NODE_CLASS_MAPPINGS = {IncrementorPlus.NODE_NAME: IncrementorPlus}
+NODE_DISPLAY_NAME_MAPPINGS = {IncrementorPlus.NODE_NAME: IncrementorPlus.DISPLAY_NAME}

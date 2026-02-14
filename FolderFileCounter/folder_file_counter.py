@@ -1,11 +1,35 @@
 import os
-import re
+
+from aiohttp import web
+from server import PromptServer
+
+from allergic_utils import sanitize_path
+
+
+@PromptServer.instance.routes.post("/allergic/folder_file_count")
+async def folder_file_count_route(request):
+    """API route to count files in a folder without running the queue."""
+    data = await request.json()
+    folder_path = data.get("folder_path", "")
+    sanitized = sanitize_path(folder_path).strip()
+    file_count = 0
+    if sanitized and os.path.isdir(sanitized):
+        try:
+            file_count = sum(
+                1 for entry in os.listdir(sanitized)
+                if os.path.isfile(os.path.join(sanitized, entry))
+            )
+        except OSError:
+            pass
+    return web.json_response({"file_count": file_count})
+
 
 class FolderFileCounter:
-    OUTPUT_NODE = True 
+    """Counts files in a given folder path."""
 
-    def __init__(self):
-        pass
+    NODE_NAME = "FolderFileCounter_Allergic"
+    DISPLAY_NAME = "Folder File Counter (Allergic)"
+    OUTPUT_NODE = True
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -25,107 +49,28 @@ class FolderFileCounter:
     FUNCTION = "count_files_in_folder"
     CATEGORY = "Allergic Pack" 
 
-    def sanitize_path(self, path_str):
-        """Clean filesystem-unfriendly characters from path - completely dummy-proof"""
-        if not isinstance(path_str, str):
-            return str(path_str) if path_str is not None else ""
-        
-        # First, strip any surrounding quotes
-        path_str = path_str.strip()
-        if (path_str.startswith('"') and path_str.endswith('"')) or (path_str.startswith("'") and path_str.endswith("'")):
-            path_str = path_str[1:-1]
-        
-        # Handle Windows drive letters specially to preserve colons
-        drive_pattern = r'^([A-Za-z]):\\?'
-        drive_match = re.match(drive_pattern, path_str)
-        drive_prefix = ""
-        remaining_path = path_str
-        
-        if drive_match:
-            drive_prefix = drive_match.group(1) + ":\\"
-            remaining_path = path_str[len(drive_match.group(0)):]
-        
-        # Define what characters are NOT allowed in Windows filenames
-        # Note: colon is NOT in this list since we handle drive letters separately
-        forbidden_chars = '<>"|?*`!@#$%^&+={}[];,~'
-        
-        # Remove forbidden characters one by one (much cleaner than regex)
-        sanitized = remaining_path
-        for char in forbidden_chars:
-            sanitized = sanitized.replace(char, '')
-        
-        # Remove control characters (0-31 and 127-159)
-        sanitized = ''.join(char for char in sanitized if ord(char) > 31 and ord(char) < 127 or ord(char) > 159)
-        
-        # Clean up multiple spaces
-        while '  ' in sanitized:
-            sanitized = sanitized.replace('  ', ' ')
-        sanitized = sanitized.strip()
-        
-        # Normalize slashes to backslashes for Windows
-        sanitized = sanitized.replace('/', '\\')
-        # Remove multiple consecutive slashes
-        while '\\\\' in sanitized:
-            sanitized = sanitized.replace('\\\\', '\\')
-        
-        # Remove trailing dots and spaces from folder names (Windows doesn't like these)
-        path_parts = sanitized.split('\\')
-        cleaned_parts = []
-        for part in path_parts:
-            cleaned_part = part.rstrip('. ')  # Remove trailing dots and spaces
-            if cleaned_part:  # Only add non-empty parts
-                cleaned_parts.append(cleaned_part)
-        
-        sanitized = '\\'.join(cleaned_parts)
-        
-        # Combine drive prefix with sanitized path
-        final_path = drive_prefix + sanitized
-        
-        # Handle edge case of empty path after sanitization
-        if not final_path.strip():
-            return ""
-            
-        return final_path
-
     def count_files_in_folder(self, folder_path):
-        processed_path = ""
-        file_count_to_display = 0 
+        """Count the number of files in the given folder path."""
+        file_count = 0
 
         if not isinstance(folder_path, str):
-            # print(f"[FolderFileCounter] Error: Input 'folder_path' is not a string: '{folder_path}'") # Optional server log
-            actual_folder_path_output = str(folder_path) if folder_path is not None else ""
-            return {"ui": {"value": [file_count_to_display]}, "result": (actual_folder_path_output, file_count_to_display)}
+            path_out = str(folder_path) if folder_path is not None else ""
+            return {"ui": {"value": [file_count]}, "result": (path_out, file_count)}
 
-        # Sanitize the path first
-        sanitized_path = self.sanitize_path(folder_path)
-        processed_path = sanitized_path.strip()
+        sanitized = sanitize_path(folder_path)
+        processed_path = sanitized.strip()
 
-        if not processed_path:
-            # print(f"[FolderFileCounter] Error: Folder path is empty. Original: '{folder_path}'") # Optional server log
-            return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
-
-        if not os.path.isdir(processed_path):
-            # print(f"[FolderFileCounter] Error: Path '{processed_path}' is not a dir. Original: '{folder_path}'") # Optional server log
-            return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
+        if not processed_path or not os.path.isdir(processed_path):
+            return {"ui": {"value": [file_count]}, "result": (sanitized, file_count)}
 
         try:
-            # Use generator expression to avoid storing full list in memory
-            file_count_to_display = sum(1 for entry in os.listdir(processed_path) 
-                                       if os.path.isfile(os.path.join(processed_path, entry)))
-            
-            # print(f"[FolderFileCounter] Path: '{processed_path}', Files: {file_count_to_display}") # Optional server log
-            return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
-        except OSError as e:
-            # print(f"[FolderFileCounter] OS Error for '{processed_path}': {e}") # Optional server log
-            return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
-        except Exception as e:
-            # print(f"[FolderFileCounter] Unexpected error for '{folder_path}': {e}") # Optional server log
-            return {"ui": {"value": [file_count_to_display]}, "result": (sanitized_path, file_count_to_display)}
+            file_count = sum(1 for entry in os.listdir(processed_path)
+                             if os.path.isfile(os.path.join(processed_path, entry)))
+        except OSError:
+            pass
 
-NODE_CLASS_MAPPINGS = {
-    "FolderFileCounter_Allergic": FolderFileCounter
-}
+        return {"ui": {"value": [file_count]}, "result": (sanitized, file_count)}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "FolderFileCounter_Allergic": "Folder File Counter (Allergic)"
-}
+
+NODE_CLASS_MAPPINGS = {FolderFileCounter.NODE_NAME: FolderFileCounter}
+NODE_DISPLAY_NAME_MAPPINGS = {FolderFileCounter.NODE_NAME: FolderFileCounter.DISPLAY_NAME}

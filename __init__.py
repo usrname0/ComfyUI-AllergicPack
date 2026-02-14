@@ -15,6 +15,16 @@ import traceback # For detailed error logging
 allergic_pack_dir = os.path.dirname(os.path.abspath(__file__))
 # __name__ will be the name of your pack's root folder, e.g., "ComfyUI-AllergicPack"
 
+# Register shared utilities so submodules can use: from allergic_utils import sanitize_path
+# We load it via importlib and register in sys.modules so dynamically-loaded
+# node files can find it, even though ComfyUI's own 'utils' module exists.
+_utils_path = os.path.join(allergic_pack_dir, "allergic_utils.py")
+_utils_spec = importlib.util.spec_from_file_location("allergic_utils", _utils_path)
+if _utils_spec and _utils_spec.loader:
+    _utils_module = importlib.util.module_from_spec(_utils_spec)
+    sys.modules["allergic_utils"] = _utils_module
+    _utils_spec.loader.exec_module(_utils_module)
+
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 
