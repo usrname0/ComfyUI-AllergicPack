@@ -1,34 +1,5 @@
-﻿## ComfyUI-AllergicPack
+## ComfyUI-AllergicPack
 Every once in a while I make a new node.  If I'm using it then I'm putting it here.  Good luck.
-
-## Installation
-
-### Via ComfyUI Manager (Recommended)
-Search for "Allergic Pack" in ComfyUI Manager and install. Dependencies will be installed automatically.
-
-### Via Comfy Registry
-```
-comfy node install AllergicPack
-```
-
-### Manual Installation
-Clone to "custom_nodes" and install dependencies:
-
-**Windows (Portable Version):**
-```bash
-cd ComfyUI_windows_portable\ComfyUI\custom_nodes
-git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
-cd ComfyUI-AllergicPack
-..\..\..\python_embeded\python.exe -m pip install .
-```
-
-**Linux/Mac or Standard Python Installation:**
-```bash
-cd ComfyUI/custom_nodes
-git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
-cd ComfyUI-AllergicPack
-pip install .
-```
 
 ## Audio Analyzer
 Detects BPM and musical key from an audio file using the Krumhansl-Schmuckler algorithm. Outputs BPM (INT), key, scale, and keyscale (e.g. "G minor") as well as an AUDIO output. Comes in two variants:
@@ -63,3 +34,31 @@ An incrementor with a reset button and adjustable step size.
 Indiscriminately counts files in a folder and displays it on the node itself (by INT out).
 ![Node Picture](./FolderFileCounter/example_workflows/FolderFileCounter.png)
 
+## Installation
+
+### Via ComfyUI Manager (Recommended)
+Search for "Allergic Pack" in ComfyUI Manager and install. Dependencies will be installed automatically.
+
+### Via Comfy Registry
+```
+comfy node install AllergicPack
+```
+
+### Manual Installation
+Clone to "custom_nodes" and install dependencies:
+
+**Windows (Portable Version):**
+```bash
+cd ComfyUI_windows_portable\ComfyUI\custom_nodes
+git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
+cd ComfyUI-AllergicPack
+..\..\..\python_embeded\python.exe -m pip install .
+```
+
+**Linux/Mac or Standard Python Installation:**
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
+cd ComfyUI-AllergicPack
+pip install .
+```

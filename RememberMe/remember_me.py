@@ -158,7 +158,7 @@ class RememberMeNode:
         }
 
 # Custom API endpoint for isolated environment collection
-@server.PromptServer.instance.routes.post("/remember_me/populate")
+@server.PromptServer.instance.routes.post("/allergic/remember_me/populate")
 async def populate_environment_info(request):
     """
     Direct API endpoint to collect environment info without executing workflows.

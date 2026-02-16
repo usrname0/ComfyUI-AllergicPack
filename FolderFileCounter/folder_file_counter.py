@@ -1,7 +1,7 @@
 import os
 
 from aiohttp import web
-from server import PromptServer
+import server
 
 from allergic_utils import sanitize_path
 
@@ -19,7 +19,7 @@ def count_files(folder_path):
         return 0
 
 
-@PromptServer.instance.routes.post("/allergic/folder_file_count")
+@server.PromptServer.instance.routes.post("/allergic/folder_file_count")
 async def folder_file_count_route(request):
     """API route to count files in a folder without running the queue."""
     data = await request.json()

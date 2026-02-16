@@ -333,7 +333,7 @@ const RememberMeExtension = {
                         }
 
                         try {
-                            const response = await fetch('/remember_me/populate', {
+                            const response = await fetch('/allergic/remember_me/populate', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' }
                             });
