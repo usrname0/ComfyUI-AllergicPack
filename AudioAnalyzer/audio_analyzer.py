@@ -185,7 +185,7 @@ class AudioAnalyzerNode:
     """Loads audio from a file path, detects BPM and musical key, and outputs
     analysis results and AUDIO data for downstream nodes."""
 
-    NODE_NAME = "AudioAnalyzerNode"
+    NODE_NAME = "AudioAnalyzer_Allergic"
     DISPLAY_NAME = "Audio Analyzer (Allergic)"
 
     @classmethod
@@ -241,7 +241,7 @@ class AudioAnalyzerUploadNode:
     """Loads audio from ComfyUI's input directory via dropdown/upload,
     detects BPM and musical key, outputs analysis and AUDIO data."""
 
-    NODE_NAME = "AudioAnalyzerUploadNode"
+    NODE_NAME = "AudioAnalyzerUpload_Allergic"
     DISPLAY_NAME = "Audio Analyzer Upload (Allergic)"
 
     @classmethod

@@ -6,8 +6,8 @@
  */
 import { app } from "../../../scripts/app.js";
 
-const EXTENSION_NAME = "Comfy.AudioAnalyzerNode";
-const NODE_TYPES = ["AudioAnalyzerNode", "AudioAnalyzerUploadNode"];
+const EXTENSION_NAME = "Comfy.AudioAnalyzer_Allergic";
+const NODE_TYPES = ["AudioAnalyzer_Allergic", "AudioAnalyzerUpload_Allergic"];
 
 const ANALYZING_COLOR = "#ffaa00";
 const SUCCESS_COLOR = "#66ff99";
@@ -80,7 +80,7 @@ const AudioAnalyzerExtension = {
     async beforeRegisterNodeDef(nodeType, nodeData, appInstance) {
         if (!NODE_TYPES.includes(nodeData.name)) return;
 
-        const isUpload = nodeData.name === "AudioAnalyzerUploadNode";
+        const isUpload = nodeData.name === "AudioAnalyzerUpload_Allergic";
         const widgetName = isUpload ? "audio" : "file_path";
 
         // For upload variant: inject AUDIO_UI so the built-in Comfy.UploadAudio

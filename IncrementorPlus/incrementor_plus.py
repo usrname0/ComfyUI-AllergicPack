@@ -1,7 +1,7 @@
 class IncrementorPlus:
     """Integer counter with configurable step size and reset."""
 
-    NODE_NAME = "IncrementorPlus"
+    NODE_NAME = "IncrementorPlus_Allergic"
     DISPLAY_NAME = "Incrementor Plus (Allergic)"
 
     @classmethod

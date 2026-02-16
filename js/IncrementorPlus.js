@@ -4,7 +4,7 @@ import { setupIncrementDefault } from "./allergic_utils.js";
 app.registerExtension({
 	name: "AllergicPack.IncrementorPlus",
 	async beforeRegisterNodeDef(nodeType, nodeData, appInstance) {
-		if (nodeData.name === "IncrementorPlus") {
+		if (nodeData.name === "IncrementorPlus_Allergic") {
 
 			const onNodeCreated = nodeType.prototype.onNodeCreated;
 

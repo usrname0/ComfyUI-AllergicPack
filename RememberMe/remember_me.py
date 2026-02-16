@@ -13,7 +13,7 @@ import server
 
 class RememberMeNode:
     """Captures and displays Python environment information with change detection."""
-    NODE_NAME = "RememberMeNode"
+    NODE_NAME = "RememberMe_Allergic"
     DISPLAY_NAME = "Remember Me (Allergic)"
 
     @classmethod

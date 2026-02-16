@@ -7,8 +7,8 @@
 import { app } from "../../../scripts/app.js";
 import { ComfyWidgets } from "../../../scripts/widgets.js";
 
-const EXTENSION_NAME = "Comfy.RememberMeNode.Enhanced";
-const NODE_TYPE_NAME = "RememberMeNode";
+const EXTENSION_NAME = "Comfy.RememberMe_Allergic.Enhanced";
+const NODE_TYPE_NAME = "RememberMe_Allergic";
 
 // Colors for different states
 const NORMAL_COLOR = "#dddddd";
