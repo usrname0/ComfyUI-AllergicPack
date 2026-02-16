@@ -1,18 +1,33 @@
 ﻿## ComfyUI-AllergicPack
-Every once in a while I want a new node.  If I'm using it then I'm putting it here.  Good luck.
+Every once in a while I make a new node.  If I'm using it then I'm putting it here.  Good luck.
 
 ## Installation
-Clone to "custom_nodes"
 
+### Via ComfyUI Manager (Recommended)
+Search for "Allergic Pack" in ComfyUI Manager and install. Dependencies will be installed automatically.
+
+### Via Comfy Registry
 ```
+comfy node install AllergicPack
+```
+
+### Manual Installation
+Clone to "custom_nodes" and install dependencies:
+
+**Windows (Portable Version):**
+```bash
+cd ComfyUI_windows_portable\ComfyUI\custom_nodes
 git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
-```
-
-### Dependencies
-Dependencies should install automatically via `pyproject.toml` if you're using the Comfy Manager or Registry. If not, you can install them manually from ComfyUI\custom_nodes\AllergicPack:
-
-```
+cd ComfyUI-AllergicPack
 ..\..\..\python_embeded\python.exe -m pip install .
+```
+
+**Linux/Mac or Standard Python Installation:**
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/usrname0/ComfyUI-AllergicPack.git
+cd ComfyUI-AllergicPack
+pip install .
 ```
 
 ## Audio Analyzer

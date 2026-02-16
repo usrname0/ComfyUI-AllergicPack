@@ -1,7 +1,7 @@
 [project]
 name = "AllergicPack"
-description = "A package of utility nodes.  Folder File Counter, Incrementor Plus, Remember Me (Environment Info), Audio Analyzer (BPM & Key Detection)"
-version = "1.3.0"
+description = "A package of utility nodes.  Audio Analyzer, Master Batcher, Folder File Counter, Incrementor Plus, and Remember Me (Environment Info)"
+version = "1.4.0"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = [
