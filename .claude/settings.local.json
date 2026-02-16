@@ -19,7 +19,8 @@
       "Bash(python3:*)",
       "Bash(curl:*)",
       "Bash(grep:*)",
-      "Bash(xargs -I {} bash -c 'file=\"\"{}\"\"; line=$\\(echo \"\"{}\"\" | cut -d: -f2\\); file_path=$\\(echo \"\"{}\"\" | cut -d: -f1\\); next_line=$\\(\\(line+1\\)\\); sed -n \"\"${next_line}p\"\" \"\"$file_path\"\" | grep -q \"\"\\\\\"\"\\\\\"\"\\\\\"\"\"\" && echo \"\"{} HAS DOCSTRING\"\" || echo \"\"{} MISSING DOCSTRING\"\"')"
+      "Bash(xargs -I {} bash -c 'file=\"\"{}\"\"; line=$\\(echo \"\"{}\"\" | cut -d: -f2\\); file_path=$\\(echo \"\"{}\"\" | cut -d: -f1\\); next_line=$\\(\\(line+1\\)\\); sed -n \"\"${next_line}p\"\" \"\"$file_path\"\" | grep -q \"\"\\\\\"\"\\\\\"\"\\\\\"\"\"\" && echo \"\"{} HAS DOCSTRING\"\" || echo \"\"{} MISSING DOCSTRING\"\"')",
+      "Bash(pip show:*)"
     ],
     "defaultMode": "acceptEdits"
   }

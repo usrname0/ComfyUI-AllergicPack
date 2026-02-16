@@ -28,33 +28,42 @@ class RememberMeNode:
     CATEGORY = "Allergic Pack"
     OUTPUT_NODE = True
 
+    @staticmethod
+    def _strip_local_version(version):
+        """Strip PEP 440 local version identifier (everything after '+').
+
+        Build metadata like '+cu128torch2.9.0andhigher.post4' varies by
+        install method and creates diff noise without adding useful info.
+        """
+        return version.split("+")[0] if version else version
+
     def _get_package_version(self, import_names, pypi_keywords, display_name):
-        """Try to get package version by import or PyPI name"""
+        """Try to get package version by import or PyPI name."""
         if not isinstance(import_names, list):
             import_names = [import_names]
         if not isinstance(pypi_keywords, list):
             pypi_keywords = [pypi_keywords]
-            
+
         # Try importing first
         for import_name in import_names:
             try:
                 pkg = importlib.import_module(import_name)
                 version = getattr(pkg, '__version__', None)
                 if version:
-                    return f"{display_name}: {version}"
+                    return f"{display_name}: {self._strip_local_version(version)}"
             except (ImportError, Exception):
                 continue
-        
+
         # Try PyPI metadata
         try:
             for dist in importlib.metadata.distributions():
                 dist_name_lower = dist.name.lower()
                 for keyword in pypi_keywords:
                     if keyword.lower() in dist_name_lower:
-                        return f"{display_name}: {dist.version}"
+                        return f"{display_name}: {self._strip_local_version(dist.version)}"
         except Exception:
             pass
-            
+
         return f"{display_name}: Not Found"
 
     def _generate_environment_snapshot(self):
