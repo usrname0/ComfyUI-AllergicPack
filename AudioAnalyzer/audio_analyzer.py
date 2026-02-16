@@ -1,13 +1,22 @@
 """
-AudioAnalyzer Node for ComfyUI
-Loads audio from a file path, detects BPM and musical key,
-and outputs both analysis results and the AUDIO data for downstream nodes.
+AudioAnalyzer Nodes for ComfyUI
+
+Two variants:
+- AudioAnalyzerNode: loads audio from a raw STRING file path (power users, scripting)
+- AudioAnalyzerUploadNode: loads audio from ComfyUI's input directory via dropdown/upload
+
+Both detect BPM and musical key, output analysis results, AUDIO data,
+and provide in-node audio preview playback.
 """
 
 import os
+import hashlib
+import random
+
 import numpy as np
 import torch
 import server
+import folder_paths
 
 from allergic_utils import sanitize_path
 
@@ -131,9 +140,50 @@ def load_audio_as_tensor(file_path):
     return {"waveform": waveform, "sample_rate": sample_rate}
 
 
+def save_preview_audio(audio_dict):
+    """Save audio to a temp FLAC file for in-node preview playback."""
+    import av
+    from io import BytesIO
+
+    temp_dir = folder_paths.get_temp_directory()
+    prefix = "allergic_preview_" + "".join(
+        random.choice("abcdefghijklmnopqrstuvwxyz") for _ in range(5)
+    )
+    full_output_folder, filename, counter, subfolder, _ = (
+        folder_paths.get_save_image_path(prefix, temp_dir)
+    )
+
+    waveform = audio_dict["waveform"].cpu()[0]  # shape (channels, samples)
+    sample_rate = audio_dict["sample_rate"]
+    layout = "mono" if waveform.shape[0] == 1 else "stereo"
+
+    file = f"{filename}_{counter:05}_.flac"
+    output_path = os.path.join(full_output_folder, file)
+
+    buf = BytesIO()
+    container = av.open(buf, mode="w", format="flac")
+    stream = container.add_stream("flac", rate=sample_rate, layout=layout)
+    frame = av.AudioFrame.from_ndarray(
+        waveform.movedim(0, 1).reshape(1, -1).float().numpy(),
+        format="flt",
+        layout=layout,
+    )
+    frame.sample_rate = sample_rate
+    frame.pts = 0
+    container.mux(stream.encode(frame))
+    container.mux(stream.encode(None))
+    container.close()
+
+    buf.seek(0)
+    with open(output_path, "wb") as f:
+        f.write(buf.getbuffer())
+
+    return {"filename": file, "subfolder": subfolder, "type": "temp"}
+
+
 class AudioAnalyzerNode:
-    """Loads audio from a file, detects BPM and musical key, and outputs both
-    analysis results and the AUDIO data for downstream nodes."""
+    """Loads audio from a file path, detects BPM and musical key, and outputs
+    analysis results and AUDIO data for downstream nodes."""
 
     NODE_NAME = "AudioAnalyzerNode"
     DISPLAY_NAME = "Audio Analyzer (Allergic)"
@@ -156,7 +206,7 @@ class AudioAnalyzerNode:
     def analyze(self, file_path):
         """
         Load audio from file_path, analyze for BPM and key, and return
-        both analysis results and a ComfyUI AUDIO output.
+        analysis results and a ComfyUI AUDIO output.
         """
         import librosa
 
@@ -175,7 +225,7 @@ class AudioAnalyzerNode:
 
         return {
             "ui": {
-                "analysis_result": [result]
+                "analysis_result": [result],
             },
             "result": (
                 audio_output,
@@ -187,18 +237,113 @@ class AudioAnalyzerNode:
         }
 
 
+class AudioAnalyzerUploadNode:
+    """Loads audio from ComfyUI's input directory via dropdown/upload,
+    detects BPM and musical key, outputs analysis and AUDIO data."""
+
+    NODE_NAME = "AudioAnalyzerUploadNode"
+    DISPLAY_NAME = "Audio Analyzer Upload (Allergic)"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        input_dir = folder_paths.get_input_directory()
+        files = [
+            f for f in os.listdir(input_dir)
+            if os.path.isfile(os.path.join(input_dir, f))
+        ]
+        files = folder_paths.filter_files_content_types(files, ["audio", "video"])
+        return {
+            "required": {
+                "audio": (sorted(files), {"audio_upload": True}),
+            },
+        }
+
+    RETURN_TYPES = ("AUDIO", "INT", "STRING", "STRING", "COMBO")
+    RETURN_NAMES = ("AUDIO", "bpm", "key", "scale", "keyscale")
+    FUNCTION = "analyze"
+    CATEGORY = "Allergic Pack"
+    OUTPUT_NODE = True
+
+    def analyze(self, audio):
+        """
+        Load audio from the input directory, analyze for BPM and key, and return
+        analysis results, a ComfyUI AUDIO output, and an audio preview.
+        """
+        import librosa
+
+        audio_path = folder_paths.get_annotated_filepath(audio)
+        if not os.path.isfile(audio_path):
+            raise FileNotFoundError(f"Audio file not found: {audio_path}")
+
+        # Analysis via librosa (needs mono numpy array)
+        audio_data, sample_rate = librosa.load(audio_path, sr=None)
+        result = analyze_audio(audio_data, sample_rate)
+
+        # Build AUDIO output via PyAV (matches ComfyUI native format)
+        audio_output = load_audio_as_tensor(audio_path)
+
+        preview = save_preview_audio(audio_output)
+
+        return {
+            "ui": {
+                "analysis_result": [result],
+                "audio": [preview],
+            },
+            "result": (
+                audio_output,
+                result["bpm"],
+                result["key"],
+                result["scale"],
+                result["keyscale"],
+            ),
+        }
+
+    @classmethod
+    def IS_CHANGED(cls, audio):
+        """Return a hash of the audio file to detect changes."""
+        audio_path = folder_paths.get_annotated_filepath(audio)
+        m = hashlib.sha256()
+        with open(audio_path, "rb") as f:
+            m.update(f.read())
+        return m.digest().hex()
+
+    @classmethod
+    def VALIDATE_INPUTS(cls, audio):
+        """Validate that the selected audio file exists."""
+        if not folder_paths.exists_annotated_filepath(audio):
+            return "Invalid audio file: {}".format(audio)
+        return True
+
+
+def _resolve_audio_path(file_path, is_upload=False):
+    """
+    Resolve an audio file path for the API endpoint.
+
+    For upload variant files (bare filenames), resolves via folder_paths.
+    For path variant files (full paths), uses sanitize_path.
+    """
+    if is_upload:
+        return folder_paths.get_annotated_filepath(file_path)
+    return sanitize_path(file_path)
+
+
 # Custom API endpoint for on-demand analysis without queue execution
 @server.PromptServer.instance.routes.post("/allergic/audio_analyzer/analyze")
 async def analyze_audio_endpoint(request):
     """
     Direct API endpoint to analyze audio from a file path without executing a workflow.
     Called by the "Analyze" button in the JavaScript frontend.
+
+    Accepts:
+        file_path: The audio file path or filename.
+        is_upload: If true, resolve as an input-directory filename via folder_paths.
     """
     try:
         import librosa
 
         data = await request.json()
         file_path = data.get("file_path", "")
+        is_upload = data.get("is_upload", False)
 
         if not file_path or not file_path.strip():
             return server.web.json_response({
@@ -206,7 +351,7 @@ async def analyze_audio_endpoint(request):
                 "error": "No file path provided.",
             }, status=400)
 
-        cleaned_path = sanitize_path(file_path)
+        cleaned_path = _resolve_audio_path(file_path, is_upload)
         if not os.path.isfile(cleaned_path):
             return server.web.json_response({
                 "success": False,
@@ -229,5 +374,11 @@ async def analyze_audio_endpoint(request):
         }, status=500)
 
 
-NODE_CLASS_MAPPINGS = {AudioAnalyzerNode.NODE_NAME: AudioAnalyzerNode}
-NODE_DISPLAY_NAME_MAPPINGS = {AudioAnalyzerNode.NODE_NAME: AudioAnalyzerNode.DISPLAY_NAME}
+NODE_CLASS_MAPPINGS = {
+    AudioAnalyzerNode.NODE_NAME: AudioAnalyzerNode,
+    AudioAnalyzerUploadNode.NODE_NAME: AudioAnalyzerUploadNode,
+}
+NODE_DISPLAY_NAME_MAPPINGS = {
+    AudioAnalyzerNode.NODE_NAME: AudioAnalyzerNode.DISPLAY_NAME,
+    AudioAnalyzerUploadNode.NODE_NAME: AudioAnalyzerUploadNode.DISPLAY_NAME,
+}

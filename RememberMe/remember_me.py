@@ -8,10 +8,11 @@ import torch
 import importlib.metadata
 import sys
 from datetime import datetime
-import json
 import server
 
+
 class RememberMeNode:
+    """Captures and displays Python environment information with change detection."""
     NODE_NAME = "RememberMeNode"
     DISPLAY_NAME = "Remember Me (Allergic)"
 

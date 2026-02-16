@@ -1,13 +1,14 @@
 /**
  * AudioAnalyzer Extension for ComfyUI
  * Adds an Analyze button and display widgets for BPM and key detection results.
+ * Handles both AudioAnalyzerNode (STRING path) and AudioAnalyzerUploadNode (COMBO upload).
+ * The upload variant also gets an audio preview player via ComfyUI's built-in AUDIO_UI.
  */
 import { app } from "../../../scripts/app.js";
 
 const EXTENSION_NAME = "Comfy.AudioAnalyzerNode";
-const NODE_TYPE_NAME = "AudioAnalyzerNode";
+const NODE_TYPES = ["AudioAnalyzerNode", "AudioAnalyzerUploadNode"];
 
-const NORMAL_COLOR = "#dddddd";
 const ANALYZING_COLOR = "#ffaa00";
 const SUCCESS_COLOR = "#66ff99";
 const ERROR_COLOR = "#ff4444";
@@ -77,7 +78,26 @@ const AudioAnalyzerExtension = {
     },
 
     async beforeRegisterNodeDef(nodeType, nodeData, appInstance) {
-        if (nodeData.name !== NODE_TYPE_NAME) return;
+        if (!NODE_TYPES.includes(nodeData.name)) return;
+
+        const isUpload = nodeData.name === "AudioAnalyzerUploadNode";
+        const widgetName = isUpload ? "audio" : "file_path";
+
+        // For upload variant: inject AUDIO_UI so the built-in Comfy.UploadAudio
+        // extension can find the audioUI widget it expects.  Comfy.AudioWidget
+        // only creates this for its hardcoded node list, so we must add it ourselves.
+        // We must insert audioUI BEFORE the upload key (injected by Comfy.UploadAudio)
+        // so widgets are created in the right order.
+        if (isUpload) {
+            const required = nodeData.input.required;
+            // Comfy.UploadAudio may have already added "upload" - rebuild to ensure order
+            const upload = required.upload;
+            delete required.upload;
+            required.audioUI = ["AUDIO_UI", {}];
+            if (upload) {
+                required.upload = upload;
+            }
+        }
 
         // Handle execution results from the backend
         const originalOnExecuted = nodeType.prototype.onExecuted;
@@ -98,15 +118,14 @@ const AudioAnalyzerExtension = {
 
             // Add the Analyze button
             this.addWidget("button", "Analyze", "analyze_button", async () => {
-                // Find the file_path widget
-                const filePathWidget = this.widgets?.find(w => w.name === "file_path");
-                const filePath = filePathWidget?.value?.trim();
+                const inputWidget = this.widgets?.find(w => w.name === widgetName);
+                const filePath = inputWidget?.value?.trim?.() ?? inputWidget?.value;
 
                 const statusWidget = this.widgets?.find(w => w.name === "status");
 
                 if (!filePath) {
                     if (statusWidget) {
-                        statusWidget.value = "No file path set";
+                        statusWidget.value = isUpload ? "No audio file selected" : "No file path set";
                         if (statusWidget.inputEl) {
                             statusWidget.inputEl.style.color = ERROR_COLOR;
                         }
@@ -128,7 +147,7 @@ const AudioAnalyzerExtension = {
                     const response = await fetch("/allergic/audio_analyzer/analyze", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ file_path: filePath }),
+                        body: JSON.stringify({ file_path: filePath, is_upload: isUpload }),
                     });
 
                     const data = await response.json();

@@ -30,6 +30,7 @@ class IncrementorPlus:
     CATEGORY = "Allergic Pack"
 
     def execute(self, value: int, step_size: int, reset_value_to: int):
+        """Return current value and step size. reset_value_to is used by the JS frontend only."""
         return (value, step_size)
 
 NODE_CLASS_MAPPINGS = {IncrementorPlus.NODE_NAME: IncrementorPlus}

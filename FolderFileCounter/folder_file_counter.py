@@ -6,22 +6,26 @@ from server import PromptServer
 from allergic_utils import sanitize_path
 
 
+def count_files(folder_path):
+    """Count regular files in a directory. Returns 0 on error or invalid path."""
+    if not folder_path or not os.path.isdir(folder_path):
+        return 0
+    try:
+        return sum(
+            1 for entry in os.listdir(folder_path)
+            if os.path.isfile(os.path.join(folder_path, entry))
+        )
+    except OSError:
+        return 0
+
+
 @PromptServer.instance.routes.post("/allergic/folder_file_count")
 async def folder_file_count_route(request):
     """API route to count files in a folder without running the queue."""
     data = await request.json()
     folder_path = data.get("folder_path", "")
     sanitized = sanitize_path(folder_path).strip()
-    file_count = 0
-    if sanitized and os.path.isdir(sanitized):
-        try:
-            file_count = sum(
-                1 for entry in os.listdir(sanitized)
-                if os.path.isfile(os.path.join(sanitized, entry))
-            )
-        except OSError:
-            pass
-    return web.json_response({"file_count": file_count})
+    return web.json_response({"file_count": count_files(sanitized)})
 
 
 class FolderFileCounter:
@@ -60,14 +64,7 @@ class FolderFileCounter:
         sanitized = sanitize_path(folder_path)
         processed_path = sanitized.strip()
 
-        if not processed_path or not os.path.isdir(processed_path):
-            return {"ui": {"value": [file_count]}, "result": (sanitized, file_count)}
-
-        try:
-            file_count = sum(1 for entry in os.listdir(processed_path)
-                             if os.path.isfile(os.path.join(processed_path, entry)))
-        except OSError:
-            pass
+        file_count = count_files(processed_path)
 
         return {"ui": {"value": [file_count]}, "result": (sanitized, file_count)}
 

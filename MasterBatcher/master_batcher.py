@@ -179,6 +179,7 @@ class MasterBatcher:
                    sort_method, load_always):
         """Main execution: load a batch of images from the mapped folders.
 
+        reset_batch_to is used by the JS frontend only.
         Returns IMAGE tensor (N,H,W,3), MASK tensor (N,H,W), images_loaded,
         folder_path string, and total_batches count.
         """
