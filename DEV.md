@@ -1,11 +1,10 @@
-# General Notes For Claude (work in progress)
-1. Research things before guessing
-2. Discuss big changes before going ahead.
-3. Use docstrings
-4. No emojis or unicode characters in production code.
+# Dev Conventions
 
-Maybe if we're feeling fancy:
-Start with writing out a dev plan (markdown) for each feature, together with uml-as-a-sketch diagrams for what you want to do.
+1. Research things before guessing.
+2. Discuss big changes before going ahead.
+3. Use docstrings.
+4. No emojis or unicode characters in production code.
+5. Write a dev plan (markdown) for each feature, with UML-as-a-sketch diagrams where useful.
 
 ## Project Structure
 
@@ -14,6 +13,31 @@ Start with writing out a dev plan (markdown) for each feature, together with uml
 - `__init__.py` at the pack root dynamically loads all node subfolders
 - Shared Python utilities go in `allergic_utils.py` at the pack root (on `sys.path` via `__init__.py`)
 - Shared JS utilities go in `js/allergic_utils.js` (imported by other JS files)
+
+## Naming Conventions
+
+### NODE_NAME (Python) — the unique type ID registered with ComfyUI
+- Always suffixed with `_Allergic` (e.g. `AudioAnalyzer_Allergic`, `IncrementorPlus_Allergic`)
+- This is the string used in `NODE_CLASS_MAPPINGS` keys and matched in JS via `nodeData.name`
+- Class names do NOT need the suffix — only `NODE_NAME` does
+
+### DISPLAY_NAME (Python) — what users see in the node browser
+- Human-readable, suffixed with `(Allergic)` (e.g. `"Audio Analyzer (Allergic)"`)
+
+### JS extension names
+- Format: `"Comfy.<NodeName>_Allergic"` (e.g. `"Comfy.AudioAnalyzer_Allergic"`)
+- Must match the `NODE_NAME` where applicable
+
+### Current nodes (v2.0.0)
+
+| NODE_NAME | DISPLAY_NAME | Subfolder |
+|---|---|---|
+| `AudioAnalyzer_Allergic` | Audio Analyzer (Allergic) | `AudioAnalyzer/` |
+| `AudioAnalyzerUpload_Allergic` | Audio Analyzer Upload (Allergic) | `AudioAnalyzer/` |
+| `FolderFileCounter_Allergic` | Folder File Counter (Allergic) | `FolderFileCounter/` |
+| `IncrementorPlus_Allergic` | Incrementor Plus (Allergic) | `IncrementorPlus/` |
+| `MasterBatcher_Allergic` | Master Batcher (Allergic) | `MasterBatcher/` |
+| `RememberMe_Allergic` | Remember Me (Allergic) | `RememberMe/` |
 
 ## Python Conventions
 
@@ -39,6 +63,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {MyNode.NODE_NAME: MyNode.DISPLAY_NAME}
 
 ### Import paths
 All JS files in `js/` use `"../../../scripts/app.js"` to reach ComfyUI's app module (three levels up from the `js/` folder inside the pack inside `custom_nodes`).
+
+### Node type matching
+JS files match nodes by `NODE_NAME` string (e.g. `nodeData.name === "IncrementorPlus_Allergic"`). These must stay in sync with the Python `NODE_NAME` attributes.
 
 ### Shared helpers (js/allergic_utils.js)
 - `updateSlotName(node, index, newName)` — update an output slot's display name

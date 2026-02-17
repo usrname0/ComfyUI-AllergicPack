@@ -1,3 +1,1 @@
-__pycache__/
-*.egg-info/
-.claude/settings.local.json
+# Project-specific ignores (common patterns handled by ~/.gitignore_global)
