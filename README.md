@@ -37,7 +37,7 @@ Indiscriminately counts files in a folder and displays it on the node itself (by
 ## Installation
 
 ### Via ComfyUI Manager (Recommended)
-Search for "Allergic Pack" in ComfyUI Manager and install. Dependencies will be installed automatically.
+Search for "Allergic Pack" in ComfyUI Manager and install the most recent version (don't do nightly unless you want to mess with your security levels). Dependencies will be installed automatically.
 
 ### Via Comfy Registry
 ```
