@@ -1,13 +1,6 @@
 ## ComfyUI-AllergicPack
 Every once in a while I make a new node.  If I'm using it then I'm putting it here.  Good luck.
 
-## Audio Analyzer
-Detects BPM and musical key from an audio file using the Krumhansl-Schmuckler algorithm. Outputs BPM (INT), key, scale, and keyscale (e.g. "G minor") as well as an AUDIO output. Comes in two variants:
-- **Audio Analyzer** - accepts a raw file path string (for minimalists)
-- **Audio Analyzer Upload** - uses ComfyUI's built-in file picker with audio preview
-
-![Node Picture](./AudioAnalyzer/example_workflows/AudioAnalyzer.png)
-
 ## Master Batcher
 Batched image loader that processes multiple folders sequentially. Accepts a multi-line list of folder paths and auto-increments through all of them batch by batch, outputting the correct folder path with each batch. Includes sorting options (alphabetical, by date, random) and a reset button.
 

@@ -32,8 +32,6 @@
 
 | NODE_NAME | DISPLAY_NAME | Subfolder |
 |---|---|---|
-| `AudioAnalyzer_Allergic` | Audio Analyzer (Allergic) | `AudioAnalyzer/` |
-| `AudioAnalyzerUpload_Allergic` | Audio Analyzer Upload (Allergic) | `AudioAnalyzer/` |
 | `FolderFileCounter_Allergic` | Folder File Counter (Allergic) | `FolderFileCounter/` |
 | `IncrementorPlus_Allergic` | Incrementor Plus (Allergic) | `IncrementorPlus/` |
 | `MasterBatcher_Allergic` | Master Batcher (Allergic) | `MasterBatcher/` |
