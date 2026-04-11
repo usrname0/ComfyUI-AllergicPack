@@ -27,6 +27,11 @@ An incrementor with a reset button and adjustable step size.
 Indiscriminately counts files in a folder and displays it on the node itself (by INT out).
 ![Node Picture](./FolderFileCounter/example_workflows/FolderFileCounter.png)
 
+## Other Node Packs
+If you're somehow looking for my other ComfyUI nodes here's where they are:
+- [ComfyUI-AllergicAudio](https://github.com/usrname0/ComfyUI-AllergicAudio) - Audio analysis nodes (BPM and key detection)
+- [ComfyUI-HoldUp](https://github.com/usrname0/ComfyUI-HoldUp) - GPU temperature monitoring node
+
 ## Installation
 
 ### Via ComfyUI Manager (Recommended)
